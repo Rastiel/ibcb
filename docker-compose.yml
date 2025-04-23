@@ -1,19 +1,16 @@
 version: '3.8'
- services:
-nginx:
-     image: nginx:alpine
-     ports:
-       - "8080:80"
-       - "8443:443"
-     volumes:
--      - ./nginx/conf.d:/etc/nginx/conf.d
--      - ./nginx/certs:/etc/letsencrypt
-+      - ./nginx/conf.d:/etc/nginx/conf.d
-+      - /etc/letsencrypt:/etc/letsencrypt:ro    # host’taki LE sertleri
-     depends_on:
-       - app
-       - webhook
-
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - /etc/letsencrypt:/etc/letsencrypt:ro    # host’taki LE sertleri
+    depends_on:
+      - app
+      - webhook
 
   mysql:
     image: mysql:8
@@ -28,14 +25,10 @@ nginx:
   app:
     build: ./app
     env_file: .env
-    depends_on:
-      - mysql
 
   webhook:
     build: ./webhook
     env_file: .env
-    depends_on:
-      - mysql
 
 volumes:
   db_data:
