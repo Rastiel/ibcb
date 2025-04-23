@@ -1,6 +1,13 @@
+# FastAPI çalışması için gerekli paketler
 fastapi
 uvicorn[standard]
+
+# Veritabanı bağlantısı
 sqlalchemy
-pydantic
-python-dotenv
 mysql-connector-python
+
+# .env desteği
+python-dotenv
+
+# Pydantic, request/response modelleri için
+pydantic
