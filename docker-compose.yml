@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/letsencrypt
+    depends_on:
+      - app
+      - webhook
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+      - db_data:/var/lib/mysql
+
+  app:
+    build: ./app
+    env_file: .env
+    depends_on:
+      - mysql
+
+  webhook:
+    build: ./webhook
+    env_file: .env
+    depends_on:
+      - mysql
+
+volumes:
+  db_data:
