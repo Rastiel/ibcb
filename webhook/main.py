@@ -6,7 +6,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-@app.route("/webhook/", methods=["GET"])
+@app.route("/", methods=["GET"])
 def verify():
     mode = request.args.get("hub.mode")
     token = request.args.get("hub.verify_token")
