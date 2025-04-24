@@ -41,8 +41,8 @@ services:
   app:
     build: ./app                   # './app' klasöründeki Dockerfile’dan imaj oluştur
     env_file: .env                 # Ortam değişkenlerini .env dosyasından al
-    ports:
-      - "8000:8000"                # Host 8000 → Container 8000 (FastAPI/Uvicorn)
+    #ports:
+      #- "8000:8000"                # Host 8000 → Container 8000 (FastAPI/Uvicorn)
     depends_on:
       - mysql                      # app, mysql servisi hazır olana kadar bekler
 
@@ -52,8 +52,8 @@ services:
   webhook:
     build: ./webhook               # './webhook' klasöründeki Dockerfile’dan imaj oluştur
     env_file: .env                 # Ortam değişkenlerini .env dosyasından al
-    ports:
-      - "5000:5000"                # Host 5000 → Container 5000 (Flask)
+    #ports:
+      #- "5000:5000"                # Host 5000 → Container 5000 (Flask)
     depends_on:
       - mysql                      # webhook, mysql servisi hazır olana kadar bekler
 
