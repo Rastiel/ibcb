@@ -1,61 +1,53 @@
-# Docker Compose tanımı: birden çok servisi tek bir YAML dosyasında tanımlar.
-# 'version' satırı artık opsiyonel; Compose V2+ kullanıyorsan kaldırabilirsin.
-
 services:
   # ----------------------------------------
   # 1. Nginx Reverse Proxy Servisi
   # ----------------------------------------
   nginx:
-    image: nginx:alpine            # Küçük boyutlu Alpine tabanlı Nginx imajı
+    image: nginx:alpine            # Hafif Alpine tabanlı Nginx imajı
     ports:
-      - "8080:80"                  # Host 8080 → Container 80 (HTTP)
-      - "8443:443"                 # Host 8443 → Container 443 (HTTPS)
+      - "80:80"                    # Host 80 → Container 80 (HTTP)
+      - "443:443"                  # Host 443 → Container 443 (HTTPS)
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-                                   # Local 'nginx/conf.d' dizinini container içindeki
-                                   # Nginx konfig dosyalarının tutulduğu klasöre mount et
+                                   # Local konfigürasyonları mount et
       - /etc/letsencrypt:/etc/letsencrypt:ro
-                                   # Host’taki Let's Encrypt sertifikalarını,
-                                   # container’da salt-okunur (ro) olarak bağla
+                                   # Host’taki SSL sertifikalarını salt‐okunur olarak bağla
     depends_on:
-      - app                        # nginx, önce 'app' servisi ayağa kalkana kadar bekler
-      - webhook                    # nginx, sonra 'webhook' servisi ayağa kalkana kadar bekler
+      - app                        # app servisi hazır olana kadar bekle
+      - webhook                    # webhook servisi hazır olana kadar bekle
 
   # ----------------------------------------
   # 2. MySQL Veritabanı Servisi
   # ----------------------------------------
   mysql:
     image: mysql:8                 # MySQL 8 imajı
+    env_file: .env                 # Ortam değişkenlerini .env’den al
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
-                                   # .env dosyasından çekilen root şifresi
-      MYSQL_DATABASE: ${DB_NAME}   # Oluşturulacak varsayılan veritabanı adı
-      MYSQL_USER: ${DB_USER}       # Oluşturulacak kullanıcı adı
-      MYSQL_PASSWORD: ${DB_PASS}   # Kullanıcı için şifre (root şifresi ile aynı)
+                                   # .env içindeki DB_PASS
+      MYSQL_DATABASE: ${DB_NAME}   # .env içindeki DB_NAME
+      MYSQL_USER: ${DB_USER}       # .env içindeki DB_USER
+      MYSQL_PASSWORD: ${DB_PASS}   # .env içindeki DB_PASS
     volumes:
-      - db_data:/var/lib/mysql     # Veritabanı verilerini named volume’da sakla
+      - db_data:/var/lib/mysql     # Veritabanı dosyalarını named volume’da sakla
 
   # ----------------------------------------
-  # 3. App Servisi (Bot İş Mantığı)
+  # 3. App Servisi (FastAPI)
   # ----------------------------------------
   app:
-    build: ./app                   # './app' klasöründeki Dockerfile’dan imaj oluştur
-    env_file: .env                 # Ortam değişkenlerini .env dosyasından al
-    #ports:
-      #- "8000:8000"                # Host 8000 → Container 8000 (FastAPI/Uvicorn)
+    build: ./app                   # ./app klasöründeki Dockerfile’dan imaj oluştur
+    env_file: .env                 # .env içindeki değişkenleri kullan
     depends_on:
-      - mysql                      # app, mysql servisi hazır olana kadar bekler
+      - mysql                      # mysql servisi hazır olana kadar bekle
 
   # ----------------------------------------
-  # 4. Webhook Servisi (Instagram Çağrıları)
+  # 4. Webhook Servisi (Flask)
   # ----------------------------------------
   webhook:
-    build: ./webhook               # './webhook' klasöründeki Dockerfile’dan imaj oluştur
-    env_file: .env                 # Ortam değişkenlerini .env dosyasından al
-    #ports:
-      #- "5000:5000"                # Host 5000 → Container 5000 (Flask)
+    build: ./webhook               # ./webhook klasöründeki Dockerfile’dan imaj oluştur
+    env_file: .env                 # .env içindeki değişkenleri kullan
     depends_on:
-      - mysql                      # webhook, mysql servisi hazır olana kadar bekler
+      - mysql                      # mysql servisi hazır olana kadar bekle
 
 # ----------------------------------------
 # Named Volumes: Kalıcı veri saklama alanları
