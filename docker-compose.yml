@@ -1,12 +1,14 @@
 version: '3.8'
 
 services:
-  # 0️⃣ .env.example → .env kopyalayıcı servis (sadece ilk çalıştırmada çalışır)
+  # ----------------------------------------
+  # 0. .env.example → .env kopyalayıcı servisi
+  # ----------------------------------------
   copy-env:
     image: alpine
-    restart: "no"
+    restart: "no"                     # sadece bir kez çalışacak
     volumes:
-      - .:/app                      # Proje klasörünü container içine mount ediyoruz
+      - .:/app                        # proje kökünü /app içine mount et
     working_dir: /app
     command: >
       sh -c "
@@ -17,12 +19,14 @@ services:
         fi
       "
 
-  # 1️⃣ NGINX Reverse Proxy (80/443 yerine özel portlar: 8080, 8443)
+  # ----------------------------------------
+  # 1. Nginx Reverse Proxy Servisi
+  # ----------------------------------------
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:80"                  # Host 8080 → Container 80 (HTTP)
-      - "8443:443"                 # Host 8443 → Container 443 (HTTPS)
+      - "80:80"                      # Host 80 → Container 80 (HTTP)
+      - "443:443"                    # Host 443 → Container 443 (HTTPS)
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -31,21 +35,25 @@ services:
       - app
       - webhook
 
-  # 2️⃣ MySQL Veritabanı Servisi
+  # ----------------------------------------
+  # 2. MySQL Veritabanı Servisi
+  # ----------------------------------------
   mysql:
     image: mysql:8
-    env_file: .env
+    env_file: .env                   # .env içindeki DB ayarlarını kullan
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER:     ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE:      ${DB_NAME}
+      MYSQL_USER:          ${DB_USER}
+      MYSQL_PASSWORD:      ${DB_PASS}
     volumes:
       - db_data:/var/lib/mysql
     depends_on:
       - copy-env
 
-  # 3️⃣ App Servisi (FastAPI olabilir)
+  # ----------------------------------------
+  # 3. App Servisi (FastAPI)
+  # ----------------------------------------
   app:
     build: ./app
     env_file: .env
@@ -53,7 +61,9 @@ services:
       - copy-env
       - mysql
 
-  # 4️⃣ Webhook Servisi (Flask, Instagram mesajları için webhook endpoint)
+  # ----------------------------------------
+  # 4. Webhook Servisi (Flask)
+  # ----------------------------------------
   webhook:
     build: ./webhook
     env_file: .env
@@ -62,4 +72,4 @@ services:
       - mysql
 
 volumes:
-  db_data:  # MySQL verisi için kalıcı volume
+  db_data:
