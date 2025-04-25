@@ -6,7 +6,7 @@ services:
   # ----------------------------------------
   copy-env:
     image: alpine
-    restart: "no"                     # sadece bir kez çalışacak
+    restart: "always"                     # sadece bir kez çalışacak
     volumes:
       - .:/app                        # proje kökünü /app içine mount et
     working_dir: /app
