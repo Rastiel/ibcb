@@ -1,56 +1,75 @@
+version: '3.8'
+
 services:
+  # ----------------------------------------
+  # 0. .env.example → .env kopyalayıcı servisi
+  # ----------------------------------------
+  copy-env:
+    image: alpine
+    restart: "no"                     # sadece bir kez çalışacak
+    volumes:
+      - .:/app                        # proje kökünü /app içine mount et
+    working_dir: /app
+    command: >
+      sh -c "
+        if [ ! -f .env ]; then
+          cp .env.example .env && echo '.env oluşturuldu';
+        else
+          echo '.env zaten var';
+        fi
+      "
+
   # ----------------------------------------
   # 1. Nginx Reverse Proxy Servisi
   # ----------------------------------------
   nginx:
-    image: nginx:alpine            # Hafif Alpine tabanlı Nginx imajı
+    image: nginx:alpine
     ports:
-      - "80:80"                    # Host 80 → Container 80 (HTTP)
-      - "443:443"                  # Host 443 → Container 443 (HTTPS)
+      - "80:80"                      # Host 80 → Container 80 (HTTP)
+      - "443:443"                    # Host 443 → Container 443 (HTTPS)
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-                                   # Local konfigürasyonları mount et
       - /etc/letsencrypt:/etc/letsencrypt:ro
-                                   # Host’taki SSL sertifikalarını salt‐okunur olarak bağla
     depends_on:
-      - app                        # app servisi hazır olana kadar bekle
-      - webhook                    # webhook servisi hazır olana kadar bekle
+      - copy-env
+      - app
+      - webhook
 
   # ----------------------------------------
   # 2. MySQL Veritabanı Servisi
   # ----------------------------------------
   mysql:
-    image: mysql:8                 # MySQL 8 imajı
-    env_file: .env                 # Ortam değişkenlerini .env’den al
+    image: mysql:8
+    env_file: .env                   # .env içindeki DB ayarlarını kullan
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
-                                   # .env içindeki DB_PASS
-      MYSQL_DATABASE: ${DB_NAME}   # .env içindeki DB_NAME
-      MYSQL_USER: ${DB_USER}       # .env içindeki DB_USER
-      MYSQL_PASSWORD: ${DB_PASS}   # .env içindeki DB_PASS
+      MYSQL_DATABASE:      ${DB_NAME}
+      MYSQL_USER:          ${DB_USER}
+      MYSQL_PASSWORD:      ${DB_PASS}
     volumes:
-      - db_data:/var/lib/mysql     # Veritabanı dosyalarını named volume’da sakla
+      - db_data:/var/lib/mysql
+    depends_on:
+      - copy-env
 
   # ----------------------------------------
   # 3. App Servisi (FastAPI)
   # ----------------------------------------
   app:
-    build: ./app                   # ./app klasöründeki Dockerfile’dan imaj oluştur
-    env_file: .env                 # .env içindeki değişkenleri kullan
+    build: ./app
+    env_file: .env
     depends_on:
-      - mysql                      # mysql servisi hazır olana kadar bekle
+      - copy-env
+      - mysql
 
   # ----------------------------------------
   # 4. Webhook Servisi (Flask)
   # ----------------------------------------
   webhook:
-    build: ./webhook               # ./webhook klasöründeki Dockerfile’dan imaj oluştur
-    env_file: .env                 # .env içindeki değişkenleri kullan
+    build: ./webhook
+    env_file: .env
     depends_on:
-      - mysql                      # mysql servisi hazır olana kadar bekle
+      - copy-env
+      - mysql
 
-# ----------------------------------------
-# Named Volumes: Kalıcı veri saklama alanları
-# ----------------------------------------
 volumes:
-  db_data:                        # MySQL verilerini tutacak volume tanımı
+  db_data:
