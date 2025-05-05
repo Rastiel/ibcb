@@ -28,12 +28,12 @@ def send_reply(to_id: str, text: str):
     """
     Instagram Graph API üzerinden yanıt gönderir.
     """
-    url = f"https://graph.facebook.com/v22.0/{IG_APP_ID}/messages"
+    #url = f"https://graph.facebook.com/v22.0/{IG_APP_ID}/messages"
+    url = f"https://graph.instagram.com/v22.0/me/messages"
     headers = {"Authorization": f"Bearer {IG_TOKEN}"}
     payload = {
-        "messaging_product": "instagram",
-        "to": to_id,
-        "text": {"body": text}
+        "recipient": {"id" : to_id},
+        "message": {"text": text}
     }
     resp = requests.post(url, json=payload, headers=headers)
     if not resp.ok:
