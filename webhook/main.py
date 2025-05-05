@@ -56,37 +56,40 @@ def webhook():
 
     entries = data.get("entry", [])
     for entry in entries:
-        for change in entry.get("changes", []):
-            value = change.get("value", {})
-            for msg in value.get("messages", []):
-                user_id = msg.get("from")
-                text    = msg.get("text", {}).get("body", "")
-                ts      = datetime.fromtimestamp(int(msg.get("timestamp", 0)))
-
-                # DB kaydı
-                session = SessionLocal()
-                try:
-                    from app.models import Message
-                    db_msg = Message(
-                        id=int(msg["id"], 36),
-                        user_id=int(user_id),
-                        direction="in",
-                        text=text,
-                        timestamp=ts
-                    )
-                    session.add(db_msg)
-                    session.commit()
-                    print(f"Saved message from {user_id}: {text}")
-                except Exception as e:
-                    session.rollback()
-                    print("Error saving message:", e)
-                finally:
-                    session.close()
-
-                # Otomatik cevap
-                reply_text = f"Merhaba! Mesajını aldım: \"{text}\""
-                send_reply(user_id, reply_text)
-
+        if 'change' in entry:
+            for change in entry.get("changes"):
+                value = change.get("value")
+                for msg in value.get("messages"):
+                    user_id = msg.get("from")
+                    text    = msg.get("text").get("body")
+                    ts      = datetime.fromtimestamp(int(msg.get("timestamp", 0)))
+    
+                    # DB kaydı
+                    session = SessionLocal()
+                    try:
+                        from app.models import Message
+                        db_msg = Message(
+                            id=int(msg["id"], 36),
+                            user_id=int(user_id),
+                            direction="in",
+                            text=text,
+                            timestamp=ts
+                        )
+                        session.add(db_msg)
+                        session.commit()
+                        print(f"Saved message from {user_id}: {text}")
+                    except Exception as e:
+                        session.rollback()
+                        print("Error saving message:", e)
+                    finally:
+                        session.close()
+    
+                    # Otomatik cevap
+                    reply_text = f"Merhaba! Mesajını aldım: \"{text}\""
+                    send_reply(user_id, reply_text)
+        else:
+            print('else e dustu: {}'.format(entry.get("message").get("text")))
+            
     return jsonify(success=True), 200
 
 if __name__ == "__main__":
