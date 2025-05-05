@@ -52,7 +52,7 @@ def verify():
 @app.route("/", methods=["POST"])
 def webhook():
     data = request.get_json()
-    print("Incoming webhook data:", data)
+    print("Incoming webhook data:", data, flush=True)
 
     entries = data.get("entry", [])
     for entry in entries:
