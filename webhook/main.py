@@ -88,7 +88,8 @@ def webhook():
                     reply_text = f"Merhaba! Mesajını aldım: \"{text}\""
                     send_reply(user_id, reply_text)
         else:
-            print('else e dustu: {}'.format(entry.get("message").get("text")))
+            for messaging_ in entry.get("messaging"):
+                print('else e dustu: {}'.format(messaging_.get("message").get("text")))
             
     return jsonify(success=True), 200
 
