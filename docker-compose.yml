@@ -4,9 +4,9 @@ services:
   # ----------------------------------------
   # 0. .env.example → .env kopyalayıcı servisi
   # ----------------------------------------
-  copy-env:
+    copy-env:
     image: alpine
-    restart: "always"                     # her seferinde çalışacak
+    restart: "no"  # veya sadece hata olursa çalışsın: "on-failure"
     volumes:
       - .:/app                        # proje kökünü /app içine mount et
     working_dir: /app
