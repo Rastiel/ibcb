@@ -4,11 +4,11 @@ services:
   # ----------------------------------------
   # 0. .env.example → .env kopyalayıcı servisi
   # ----------------------------------------
-    copy-env:
+  copy-env:
     image: alpine
-    restart: "no"  # veya sadece hata olursa çalışsın: "on-failure"
+    restart: "no"
     volumes:
-      - .:/app                        # proje kökünü /app içine mount et
+      - .:/app
     working_dir: /app
     command: >
       sh -c "
@@ -25,8 +25,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"                      # Host 80 → Container 80 (HTTP)
-      - "443:443"                    # Host 443 → Container 443 (HTTPS)
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -40,12 +40,12 @@ services:
   # ----------------------------------------
   mysql:
     image: mysql:8
-    env_file: .env                   # .env içindeki DB ayarlarını kullan
+    env_file: .env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE:      ${DB_NAME}
-      MYSQL_USER:          ${DB_USER}
-      MYSQL_PASSWORD:      ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - db_data:/var/lib/mysql
     depends_on:
