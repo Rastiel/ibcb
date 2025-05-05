@@ -28,7 +28,7 @@ def send_reply(to_id: str, text: str):
     """
     Instagram Graph API üzerinden yanıt gönderir.
     """
-    url = f"https://graph.facebook.com/v17.0/{IG_APP_ID}/messages"
+    url = f"https://graph.facebook.com/v22.0/{IG_APP_ID}/messages"
     headers = {"Authorization": f"Bearer {IG_TOKEN}"}
     payload = {
         "messaging_product": "instagram",
@@ -89,7 +89,11 @@ def webhook():
                     send_reply(user_id, reply_text)
         else:
             for messaging_ in entry.get("messaging"):
-                print('else e dustu: {}'.format(messaging_.get("message").get("text")))
+                text = messaging_.get("message").get("text")
+                print('else e dustu: {}'.format(text))
+                user_id = messaging_.get("sender").get("id")
+                reply_text = f"Merhaba! Mesajını aldım canım: \"{text}\""
+                send_reply(user_id, reply_text)
             
     return jsonify(success=True), 200
 
